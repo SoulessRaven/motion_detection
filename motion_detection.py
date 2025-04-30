@@ -1,6 +1,7 @@
 import cv2
 import time
 import os
+import pandas as pd
 from datetime import datetime as dt
 
 ADAPTIVE_BACKGROUND = False
@@ -13,6 +14,8 @@ video.set(4, 480)
 
 status_list = [None, None]
 times = []
+log_df = pd.DataFrame(columns=["Start", "End"])
+
 
 if CAPTURE_STATIC_BACKGROUND == True:
     start_time = time.time()
@@ -112,7 +115,8 @@ if status == 1:
 
 os.makedirs("LOG", exist_ok=True)
 log_path = os.path.join("LOG", "detection_times.csv")
-with open(log_path, "w") as f:
-    f.write("Index Start, End\n")
-    for i in range(0, len(times), 2):
-        f.write(f"{(1 // 2) +1 }, {times[i].isoformat()}, {times[i + 1].isoformat()}\n") 
+
+for i in range(o, len(times), 2):
+    log_df = log_df._append({"Start": times[1].isoformat(), "End": times[i + 1].isoformat()}, ignore_index = True)
+
+log_df.to_csv(log_path, index_label = "Index")
