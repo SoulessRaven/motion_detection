@@ -116,7 +116,7 @@ if status == 1:
 os.makedirs("LOG", exist_ok=True)
 log_path = os.path.join("LOG", "detection_times.csv")
 
-for i in range(o, len(times), 2):
-    log_df = log_df._append({"Start": times[1].isoformat(), "End": times[i + 1].isoformat()}, ignore_index = True)
+for i in range(0, len(times), 2):
+    log_df = log_df.append({"Start": times[1].isoformat(), "End": times[i + 1].isoformat()}, ignore_index = True)
 
 log_df.to_csv(log_path, index_label = "Index")
