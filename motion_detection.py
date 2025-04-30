@@ -1,6 +1,7 @@
 import cv2
 import time
 import os
+from datetime import datetime as dt
 
 ADAPTIVE_BACKGROUND = False
 CAPTURE_STATIC_BACKGROUND = False
@@ -9,6 +10,9 @@ timer = 10
 video = cv2.VideoCapture(0)
 video.set(3, 640)
 video.set(4, 480)
+
+status_list = [None, None]
+times = []
 
 if CAPTURE_STATIC_BACKGROUND == True:
     start_time = time.time()
@@ -45,6 +49,7 @@ if not ADAPTIVE_BACKGROUND:
 
 while True:
     check, frame = video.read()
+    status = 0
     frame = cv2.flip(frame, 1)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -73,9 +78,24 @@ while True:
     for contour in cnts:
         if cv2.contourArea(contour) < 1500:
             continue
-
+        
+        status = 1
         (x, y, w, h) = cv2.boundingRect(contour)
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+    status_list.append(status)
+    status_list = status_list[-2:]
+
+    if status_list[-1] == 1 and status_list[-2] == 0:
+        times.append(dt.now())
+        md_base_name = dt.now().strftime("%Y%m%d_%H%M%S")
+        md_output_name = f"{md_base_name}_detected.jpg"
+        os.makedirs("LOG", exist_ok=True)
+        log_jpg = os.path.join("LOG", md_output_name)
+        cv2.imwrite(log_jpg, frame)
+
+    if status_list[-1] == 0 and status_list[-2] == 1:
+        times.append(dt.now())
 
     cv2.imshow("Capturing", frame)
 
@@ -86,3 +106,13 @@ while True:
 
 video.release()
 cv2.destroyAllWindows()
+
+if status == 1:
+    times.append(dt.now())
+
+os.makedirs("LOG", exist_ok=True)
+log_path = os.path.join("LOG", "detection_times.csv")
+with open(log_path, "w") as f:
+    f.write("Index Start, End\n")
+    for i in range(0, len(times), 2):
+        f.write(f"{(1 // 2) +1 }, {times[i].isoformat()}, {times[i + 1].isoformat()}\n") 
